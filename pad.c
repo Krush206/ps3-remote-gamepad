@@ -26,6 +26,11 @@
 #define PAD_START "start"
 #define PAD_SELECT "select"
 
+#define pad_setup(padkey) \
+        pad_input = malloc(input_len = sizeof PAD_PREFIX + sizeof padkey - 1); \
+        memcpy(pad_input, PAD_PREFIX, sizeof PAD_PREFIX - 1); \
+        strcpy(pad_input + sizeof PAD_PREFIX - 1, padkey)
+
 int pad_connect(void);
 int getkey(void);
 
@@ -82,64 +87,40 @@ int pad_connect(void)
   switch(input)
   {
     case 'z':
-      pad_input = malloc(input_len = sizeof PAD_PREFIX + sizeof PAD_CROSS - 1);
-      memcpy(pad_input, PAD_PREFIX, sizeof PAD_PREFIX - 1);
-      strcpy(pad_input + sizeof PAD_PREFIX - 1, PAD_CROSS);
+      pad_setup(PAD_CROSS);
       break;
     case 'a':
-      pad_input = malloc(input_len = sizeof PAD_PREFIX + sizeof PAD_CIRCLE - 1);
-      memcpy(pad_input, PAD_PREFIX, sizeof PAD_PREFIX - 1);
-      strcpy(pad_input + sizeof PAD_PREFIX - 1, PAD_CIRCLE);
+      pad_setup(PAD_SQUARE);
       break;
     case 's':
-      pad_input = malloc(input_len = sizeof PAD_PREFIX + sizeof PAD_SQUARE - 1);
-      memcpy(pad_input, PAD_PREFIX, sizeof PAD_PREFIX - 1);
-      strcpy(pad_input + sizeof PAD_PREFIX - 1, PAD_SQUARE);
+      pad_setup(PAD_CIRCLE);
       break;
     case 'w':
-      pad_input = malloc(input_len = sizeof PAD_PREFIX + sizeof PAD_TRIANGLE - 1);
-      memcpy(pad_input, PAD_PREFIX, sizeof PAD_PREFIX - 1);
-      strcpy(pad_input + sizeof PAD_PREFIX - 1, PAD_TRIANGLE);
+      pad_setup(PAD_TRIANGLE);
       break;
     case 'q':
-      pad_input = malloc(input_len = sizeof PAD_PREFIX + sizeof PAD_L1 - 1);
-      memcpy(pad_input, PAD_PREFIX, sizeof PAD_PREFIX - 1);
-      strcpy(pad_input + sizeof PAD_PREFIX - 1, PAD_L1);
+      pad_setup(PAD_L1);
       break;
     case 'e':
-      pad_input = malloc(input_len = sizeof PAD_PREFIX + sizeof PAD_R1 - 1);
-      memcpy(pad_input, PAD_PREFIX, sizeof PAD_PREFIX - 1);
-      strcpy(pad_input + sizeof PAD_PREFIX - 1, PAD_R1);
+      pad_setup(PAD_R1);
       break;
     case 'x':
-      pad_input = malloc(input_len = sizeof PAD_PREFIX + sizeof PAD_L2 - 1);
-      memcpy(pad_input, PAD_PREFIX, sizeof PAD_PREFIX - 1);
-      strcpy(pad_input + sizeof PAD_PREFIX - 1, PAD_L2);
+      pad_setup(PAD_L2);
       break;
     case 'c':
-      pad_input = malloc(input_len = sizeof PAD_PREFIX + sizeof PAD_R2 - 1);
-      memcpy(pad_input, PAD_PREFIX, sizeof PAD_PREFIX - 1);
-      strcpy(pad_input + sizeof PAD_PREFIX - 1, PAD_R2);
+      pad_setup(PAD_R2);
       break;
     case '1':
-      pad_input = malloc(input_len = sizeof PAD_PREFIX + sizeof PAD_START - 1);
-      memcpy(pad_input, PAD_PREFIX, sizeof PAD_PREFIX - 1);
-      strcpy(pad_input + sizeof PAD_PREFIX - 1, PAD_START);
+      pad_setup(PAD_START);
       break;
     case '2':
-      pad_input = malloc(input_len = sizeof PAD_PREFIX + sizeof PAD_SELECT - 1);
-      memcpy(pad_input, PAD_PREFIX, sizeof PAD_PREFIX - 1);
-      strcpy(pad_input + sizeof PAD_PREFIX - 1, PAD_SELECT);
+      pad_setup(PAD_SELECT);
       break;
     case 'h':
-      pad_input = malloc(input_len = sizeof PAD_PREFIX + sizeof PAD_HOME - 1);
-      memcpy(pad_input, PAD_PREFIX, sizeof PAD_PREFIX - 1);
-      strcpy(pad_input + sizeof PAD_PREFIX - 1, PAD_HOME);
+      pad_setup(PAD_HOME);
       break;
     case 'H':
-      pad_input = malloc(input_len = sizeof PAD_PREFIX + sizeof PAD_HOME_HOLD - 1);
-      memcpy(pad_input, PAD_PREFIX, sizeof PAD_PREFIX - 1);
-      strcpy(pad_input + sizeof PAD_PREFIX - 1, PAD_HOME_HOLD);
+      pad_setup(PAD_HOME_HOLD);
       break;
     case 27: /* For arrow keys. */
       input = getchar();
@@ -149,24 +130,16 @@ int pad_connect(void)
         switch(input)
         {
           case 'A':
-            pad_input = malloc(input_len = sizeof PAD_PREFIX + sizeof PAD_UP - 1);
-            memcpy(pad_input, PAD_PREFIX, sizeof PAD_PREFIX - 1);
-            strcpy(pad_input + sizeof PAD_PREFIX - 1, PAD_UP);
+            pad_setup(PAD_UP);
             break;
           case 'B':
-            pad_input = malloc(input_len = sizeof PAD_PREFIX + sizeof PAD_DOWN - 1);
-            memcpy(pad_input, PAD_PREFIX, sizeof PAD_PREFIX - 1);
-            strcpy(pad_input + sizeof PAD_PREFIX - 1, PAD_DOWN);
+            pad_setup(PAD_DOWN);
             break;
           case 'C':
-            pad_input = malloc(input_len = sizeof PAD_PREFIX + sizeof PAD_RIGHT - 1);
-            memcpy(pad_input, PAD_PREFIX, sizeof PAD_PREFIX - 1);
-            strcpy(pad_input + sizeof PAD_PREFIX - 1, PAD_RIGHT);
+            pad_setup(PAD_RIGHT);
             break;
           case 'D':
-            pad_input = malloc(input_len = sizeof PAD_PREFIX + sizeof PAD_LEFT - 1);
-            memcpy(pad_input, PAD_PREFIX, sizeof PAD_PREFIX - 1);
-            strcpy(pad_input + sizeof PAD_PREFIX - 1, PAD_LEFT);
+            pad_setup(PAD_LEFT);
             break;
           default: return 1;
         }
