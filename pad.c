@@ -82,9 +82,9 @@ int main(int argc, char **argv)
 int pad_connect(void)
 {
   int input_len;
-  char input = getchar(), *pad_input;
+  char *pad_input;
 
-  switch(input)
+  switch(getchar())
   {
     case 'z':
       pad_setup(PAD_CROSS);
@@ -123,11 +123,8 @@ int pad_connect(void)
       pad_setup(PAD_HOME_HOLD);
       break;
     case 27: /* For arrow keys. */
-      input = getchar();
-      if(input == '[')
-      {
-        input = getchar();
-        switch(input)
+      if(getchar() == '[')
+        switch(getchar())
         {
           case 'A':
             pad_setup(PAD_UP);
@@ -145,7 +142,6 @@ int pad_connect(void)
             close(sockfd);
 	    return 1;
         }
-      }
       else
       {
         close(sockfd);
