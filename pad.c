@@ -27,7 +27,7 @@
 #define PAD_SELECT "select"
 
 #define pad_setup(padkey) \
-        pad_input = malloc(input_len = sizeof PAD_PREFIX + sizeof padkey - 1); \
+        pad_input = (char *) malloc(input_len = sizeof PAD_PREFIX + sizeof padkey - 1); \
         memcpy(pad_input, PAD_PREFIX, sizeof PAD_PREFIX - 1); \
         strcpy(pad_input + sizeof PAD_PREFIX - 1, padkey)
 
