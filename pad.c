@@ -141,15 +141,23 @@ int pad_connect(void)
           case 'D':
             pad_setup(PAD_LEFT);
             break;
-          default: return 1;
+          default:
+            close(sockfd);
+	    return 1;
         }
       }
-      else return 1;
+      else
+      {
+        close(sockfd);
+        return 1;
+      }
       break;
     case 3: /* For Ctrl+C. */
       printf("Exiting...\r\n");
       return 3;
-    default: return 1;
+    default:
+      close(sockfd);
+      return 1;
   }
 
   printf("%s\r\n", pad_input);
