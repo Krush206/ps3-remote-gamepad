@@ -75,7 +75,7 @@ int main(int argc, char **argv)
       return 1;
     }
 
-    if(pad_connect() == 3) return 0;
+    pad_connect();
   }
 }
 
@@ -154,7 +154,7 @@ int pad_connect(void)
       break;
     case 3: /* For Ctrl+C. */
       printf("Exiting...\r\n");
-      return 3;
+      exit(0);
     default:
       close(sockfd);
       return 1;
