@@ -43,9 +43,9 @@ int main(int argc, char **argv)
   int ret;
   struct sockaddr_in sockopt;
 
-  if(argc < 2)
+  if(argc < 2 || argc > 2)
   {
-    fprintf(stderr, "Input an address.\n");
+    fprintf(stderr, "Usage: ./a.out <PlayStation 3 ip>\n");
     return 1;
   }
   else if(strlen(argv[1]) > 15)
