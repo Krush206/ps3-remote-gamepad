@@ -132,20 +132,20 @@ int pad_connect(void)
         switch(getchar())
         {
           case 'A':
-            if(pad_setup(PAD_UP, sizeof PAD_UP)) return 1;
-            else if(fcntl_setup(1)) return 1;
+            if(fcntl_setup(1)) return 1;
+            else if(pad_setup(PAD_UP, sizeof PAD_UP)) return 1;
             break;
           case 'B':
-            if(pad_setup(PAD_DOWN, sizeof PAD_DOWN)) return 1;
-            else if(fcntl_setup(1)) return 1;
+            if(fcntl_setup(1)) return 1;
+            else if(pad_setup(PAD_DOWN, sizeof PAD_DOWN)) return 1;
             break;
           case 'C':
-            if(pad_setup(PAD_RIGHT, sizeof PAD_RIGHT)) return 1;
-            else if(fcntl_setup(1)) return 1;
+            if(fcntl_setup(1)) return 1;
+            else if(pad_setup(PAD_RIGHT, sizeof PAD_RIGHT)) return 1;
             break;
           case 'D':
-            if(pad_setup(PAD_LEFT, sizeof PAD_LEFT)) return 1;
-            else if(fcntl_setup(1)) return 1;
+            if(fcntl_setup(1)) return 1;
+            else if(pad_setup(PAD_LEFT, sizeof PAD_LEFT)) return 1;
             break;
           default:
             if(fcntl_setup(1)) return 1;
