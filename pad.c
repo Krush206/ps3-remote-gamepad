@@ -7,6 +7,7 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <termios.h>
+#include <fcntl.h>
 
 #define PAD_PREFIX "GET /pad.ps3?"
 #define PAD_HOME "_psbtn_home"
@@ -33,8 +34,9 @@
 
 int pad_connect(void);
 int getkey(void);
+int fcntl_setup(int);
 
-int sockfd;
+int sockfd, fdflags;
 
 int main(int argc, char **argv)
 {
@@ -59,6 +61,11 @@ int main(int argc, char **argv)
   if(getkey())
   {
     fprintf(stderr, "Failed to set up the terminal.\n");
+    return 1;
+  }
+  else if((fdflags = fcntl(0, F_GETFL)) < 0)
+  {
+    fprintf(stderr, "Failed to get stdin descriptor flags.\n");
     return 1;
   }
 
@@ -123,27 +130,38 @@ int pad_connect(void)
       pad_setup(PAD_HOME_HOLD);
       break;
     case 27: /* For arrow keys. */
+      if(fcntl_setup(0)) return 1;
+      usleep(1000);
       if(getchar() == '[')
+      {
+        usleep(1000);
         switch(getchar())
         {
           case 'A':
             pad_setup(PAD_UP);
+            if(fcntl_setup(1)) return 1;
             break;
           case 'B':
             pad_setup(PAD_DOWN);
+            if(fcntl_setup(1)) return 1;
             break;
           case 'C':
             pad_setup(PAD_RIGHT);
+            if(fcntl_setup(1)) return 1;
             break;
           case 'D':
             pad_setup(PAD_LEFT);
+            if(fcntl_setup(1)) return 1;
             break;
           default:
+            if(fcntl_setup(1)) return 1;
             close(sockfd);
 	    return 1;
         }
+      }
       else
       {
+        if(fcntl_setup(1)) return 1;
         close(sockfd);
         return 1;
       }
@@ -171,6 +189,28 @@ int getkey(void)
   if(tcgetattr(0, &term) < 0) return 1;
   cfmakeraw(&term);
   if(tcsetattr(0, TCSANOW, &term) < 0) return 1;
+
+  return 0;
+}
+
+int fcntl_setup(int reset)
+{
+  if(reset)
+  {
+    if(fcntl(0, F_SETFL, fdflags) < 0)
+    {
+      fprintf(stderr, "Failed to reset stdin descriptor flags.\n");
+      close(sockfd);
+      return 1;
+    }
+  }
+  else
+    if(fcntl(0, F_SETFL, fdflags | O_NONBLOCK) < 0)
+    {
+      fprintf(stderr, "Failed to set stdin descriptor flags.\n");
+      close(sockfd);
+      return 1;
+    }
 
   return 0;
 }
