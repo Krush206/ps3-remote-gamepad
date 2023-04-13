@@ -30,7 +30,7 @@
 int pad_connect(void);
 int getkey(void);
 int fcntl_setup(int);
-int pad_setup(char *);
+int pad_setup(char *, int);
 
 int sockfd, fdflags, input_len;
 char *pad_input;
@@ -70,7 +70,7 @@ int main(int argc, char **argv)
   {
     if((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
     {
-      fprintf(stderr, "Can't open socket.\r\n");
+      fprintf(stderr, "Failed to open socket.\r\n");
       return 1;
     }
     else if(connect(sockfd, (struct sockaddr *) &sockopt, sizeof sockopt) < 0)
@@ -88,40 +88,40 @@ int pad_connect(void)
   switch(getchar())
   {
     case 'z':
-      if(pad_setup(PAD_CROSS)) return 1;
+      if(pad_setup(PAD_CROSS, sizeof PAD_CROSS)) return 1;
       break;
     case 'a':
-      if(pad_setup(PAD_SQUARE)) return 1;
+      if(pad_setup(PAD_SQUARE, sizeof PAD_SQUARE)) return 1;
       break;
     case 's':
-      if(pad_setup(PAD_CIRCLE)) return 1;
+      if(pad_setup(PAD_CIRCLE, sizeof PAD_CIRCLE)) return 1;
       break;
     case 'w':
-      if(pad_setup(PAD_TRIANGLE)) return 1;
+      if(pad_setup(PAD_TRIANGLE, sizeof PAD_TRIANGLE)) return 1;
       break;
     case 'q':
-      if(pad_setup(PAD_L1)) return 1;
+      if(pad_setup(PAD_L1, sizeof PAD_L1)) return 1;
       break;
     case 'e':
-      if(pad_setup(PAD_R1)) return 1;
+      if(pad_setup(PAD_R1, sizeof PAD_R1)) return 1;
       break;
     case 'x':
-      if(pad_setup(PAD_L2)) return 1;
+      if(pad_setup(PAD_L2, sizeof PAD_L2)) return 1;
       break;
     case 'c':
-      if(pad_setup(PAD_R2)) return 1;
+      if(pad_setup(PAD_R2, sizeof PAD_R2)) return 1;
       break;
     case '1':
-      if(pad_setup(PAD_START)) return 1;
+      if(pad_setup(PAD_START, sizeof PAD_START)) return 1;
       break;
     case '2':
-      if(pad_setup(PAD_SELECT)) return 1;
+      if(pad_setup(PAD_SELECT, sizeof PAD_SELECT)) return 1;
       break;
     case 'h':
-      if(pad_setup(PAD_HOME)) return 1;
+      if(pad_setup(PAD_HOME, sizeof PAD_HOME)) return 1;
       break;
     case 'H':
-      if(pad_setup(PAD_HOME_HOLD)) return 1;
+      if(pad_setup(PAD_HOME_HOLD, sizeof PAD_HOME_HOLD)) return 1;
       break;
     case 27: /* For arrow keys. */
       if(fcntl_setup(0)) return 1;
@@ -132,19 +132,19 @@ int pad_connect(void)
         switch(getchar())
         {
           case 'A':
-            if(pad_setup(PAD_UP)) return 1;
+            if(pad_setup(PAD_UP, sizeof PAD_UP)) return 1;
             else if(fcntl_setup(1)) return 1;
             break;
           case 'B':
-            if(pad_setup(PAD_DOWN)) return 1;
+            if(pad_setup(PAD_DOWN, sizeof PAD_DOWN)) return 1;
             else if(fcntl_setup(1)) return 1;
             break;
           case 'C':
-            if(pad_setup(PAD_RIGHT)) return 1;
+            if(pad_setup(PAD_RIGHT, sizeof PAD_RIGHT)) return 1;
             else if(fcntl_setup(1)) return 1;
             break;
           case 'D':
-            if(pad_setup(PAD_LEFT)) return 1;
+            if(pad_setup(PAD_LEFT, sizeof PAD_LEFT)) return 1;
             else if(fcntl_setup(1)) return 1;
             break;
           default:
@@ -209,9 +209,9 @@ int fcntl_setup(int reset)
   return 0;
 }
 
-int pad_setup(char *padkey)
+int pad_setup(char *padkey, int key_len)
 {
-  if((pad_input = (char *) malloc(input_len = sizeof PAD_PREFIX + sizeof padkey - 1)) == NULL)
+  if((pad_input = (char *) malloc(input_len = sizeof PAD_PREFIX + key_len - 1)) == NULL)
   {
     fprintf(stderr, "Failed to allocate memory.\n");
     close(sockfd);
