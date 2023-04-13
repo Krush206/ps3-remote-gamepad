@@ -37,7 +37,6 @@ char *pad_input;
 
 int main(int argc, char **argv)
 {
-  int ret;
   struct sockaddr_in sockopt;
 
   if(argc < 2 || argc > 2)
@@ -62,7 +61,7 @@ int main(int argc, char **argv)
   }
   else if((fdflags = fcntl(0, F_GETFL)) < 0)
   {
-    fprintf(stderr, "Failed to get stdin descriptor flags.\n");
+    fprintf(stderr, "Failed to get stdin descriptor flags.\r\n");
     return 1;
   }
 
@@ -193,7 +192,7 @@ int fcntl_setup(int reset)
   {
     if(fcntl(0, F_SETFL, fdflags) < 0)
     {
-      fprintf(stderr, "Failed to reset stdin descriptor flags.\n");
+      fprintf(stderr, "Failed to reset stdin descriptor flags.\r\n");
       close(sockfd);
       return 1;
     }
@@ -201,7 +200,7 @@ int fcntl_setup(int reset)
   else
     if(fcntl(0, F_SETFL, fdflags | O_NONBLOCK) < 0)
     {
-      fprintf(stderr, "Failed to set stdin descriptor flags.\n");
+      fprintf(stderr, "Failed to set stdin descriptor flags.\r\n");
       close(sockfd);
       return 1;
     }
@@ -213,7 +212,7 @@ int pad_setup(char *padkey, int key_len)
 {
   if((pad_input = (char *) malloc(input_len = sizeof PAD_PREFIX + key_len - 1)) == NULL)
   {
-    fprintf(stderr, "Failed to allocate memory.\n");
+    fprintf(stderr, "Failed to allocate memory.\r\n");
     close(sockfd);
     return 1;
   }
