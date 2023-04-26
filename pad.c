@@ -8,6 +8,7 @@
 #include <netdb.h>
 #include <termios.h>
 #include <fcntl.h>
+#include <ctype.h>
 
 #define PAD_PREFIX "GET /pad.ps3?"
 #define PAD_HOME "_psbtn_home"
@@ -38,15 +39,35 @@ struct sockaddr_in sockopt;
 
 int main(int argc, char **argv)
 {
+  int i, j = 0, is_null = 0, is_dot;
+  char *ip;
+
   if(argc < 2 || argc > 2)
   {
     fprintf(stderr, "Usage: ./a.out <PlayStation 3 ip>\n");
     return -1;
   }
-  else if(strlen(argv[1]) > 15)
+  else if(strlen(argv[1]) > 15 || strlen(argv[1]) < 7)
+    goto addrerr;
+  else for(i = 0; argv[1][i]; i++)
   {
-    fprintf(stderr, "Address too long.\n");
-    return -1;
+    if((is_dot = argv[1][i] == '.') || (is_null = !argv[1][i+1]))
+    {
+      ip = (char *) malloc(j ? is_null ? i - j + 1 : i - j : i + 1);
+      snprintf(ip, j ? is_null ? i - j + 1 : i - j : i + 1, "%s", j ? argv[1] + j + 1 : argv[1]);
+      j = i;
+
+      if(atoi(ip) > 255)
+      {
+        free(ip);
+        goto addrerr;
+      }
+
+      free(ip);
+    }
+    
+    if(!is_dot && !isdigit(argv[1][i]))
+      goto addrerr;
   }
   
   sockopt.sin_family = AF_INET;
@@ -66,6 +87,10 @@ int main(int argc, char **argv)
 
   while(1)
     if(!pad_connect()) return -1;
+
+  addrerr:
+    fprintf(stderr, "Invalid address.\n");
+    return -1;
 }
 
 int pad_connect(void)
