@@ -12,7 +12,7 @@ char *pad_input;
 struct sockaddr_in sockopt;
 
 @implementation NSString (getchar)
-- (NSMutableString *) getKey: (BOOL) isArrowKey
+- (NSMutableString *) getArrowKey: (BOOL) is_arrow
 {
   char c;
   NSMutableString *key = [[NSMutableString string] init];
@@ -35,17 +35,17 @@ struct sockaddr_in sockopt;
   switch((c = getchar()))
   {
     case 3: [exit padExit];
-    case 27: return [self getArrowKey];
+    case 27: return [self parseArrowKey];
     default:
       [key appendFormat: @"%c", c];
-      if(isArrowKey) return key;
+      if(is_arrow) return key;
       else if(keysdict[key] == nil) return nil;
   }
 
   return key;
 }
 
-- (NSMutableString *) getArrowKey
+- (NSMutableString *) parseArrowKey
 {
   NSMutableString *key;
   NSDictionary *keysdict = @{
@@ -56,13 +56,13 @@ struct sockaddr_in sockopt;
   };
   TtySetup *ttySetup = [[TtySetup alloc] init];
 
-  [ttySetup stdinFlags: NO];
+  [ttySetup resetStdinFlags: NO];
   usleep(1000);
-  if([[self getKey: YES] isEqualToString: @"["])
+  if([[self getArrowKey: YES] isEqualToString: @"["])
   {
     usleep(1000);
-    key = [self getKey: YES];
-    [ttySetup stdinFlags: YES];
+    key = [self getArrowKey: YES];
+    [ttySetup resetStdinFlags: YES];
     return keysdict[key];
   }
       
@@ -101,7 +101,7 @@ struct sockaddr_in sockopt;
   NSString *key = [[NSString string] init];
   NSMutableString *getchar = [[NSMutableString string] init];
 
-  if([getchar getKey: NO] == nil) return YES;
+  if([getchar getArrowKey: NO] == nil) return YES;
   else if(![self sendKey: [key UTF8String] keyLength: [key length]]) return NO;
 
   printf("%s\r\n", pad_input);
@@ -120,7 +120,7 @@ struct sockaddr_in sockopt;
 @end
 
 @implementation TtySetup
-- (BOOL) stdinFlags: (BOOL) reset
+- (BOOL) resetStdinFlags: (BOOL) reset
 {
   if(reset)
   {
@@ -140,7 +140,7 @@ struct sockaddr_in sockopt;
   return YES;
 }
 
-- (BOOL) termSetup
+- (BOOL) makeRawTerm
 {
   struct termios term;
 
@@ -174,7 +174,7 @@ int main(int argc, char **argv)
   sockopt.sin_port = htons(80);
   inet_aton(argv[1], &sockopt.sin_addr);
 
-  if(![ttySetup termSetup])
+  if(![ttySetup makeRawTerm])
   {
     fprintf(stderr, "Failed to set up the terminal.\n");
     return -1;

@@ -5,6 +5,6 @@
 @end
 
 @interface TtySetup: NSObject
-- (BOOL) stdinFlags: (BOOL) reset;
-- (BOOL) termSetup;
+- (BOOL) resetStdinFlags: (BOOL) reset;
+- (BOOL) makeRawTerm;
 @end
