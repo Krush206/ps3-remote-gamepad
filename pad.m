@@ -3,7 +3,7 @@
 #import <termios.h>
 #import <arpa/inet.h>
 #import <netdb.h>
-#import "pad_objc.h"
+#import "pad.h"
 
 #define PAD_PREFIX "GET /pad.ps3?"
 
