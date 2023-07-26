@@ -5,17 +5,16 @@
 #import <netdb.h>
 #import "pad.h"
 
-#define PAD_PREFIX "GET /pad.ps3?"
+#define PAD_PREFIX @"GET /pad.ps3?"
 
 int sockfd, fdflags, input_len;
-char *pad_input;
 struct sockaddr_in sockopt;
 
 @implementation NSString (getchar)
 - (NSMutableString *) getArrowKey: (BOOL) is_arrow
 {
   char c;
-  NSMutableString *key = [[NSMutableString string] init];
+  NSMutableString *key = [NSMutableString new];
   NSDictionary *keysdict = @{
     @"h": @"_psbtn_home",
     @"H": @"_psbtn_home_hold",
@@ -30,7 +29,7 @@ struct sockaddr_in sockopt;
     @"1": @"start",
     @"2": @"select",
   };
-  PadSetup *exit = [[PadSetup alloc] init];
+  PadSetup *exit = [PadSetup new];
 
   switch((c = getchar()))
   {
@@ -39,7 +38,7 @@ struct sockaddr_in sockopt;
     default:
       [key appendFormat: @"%c", c];
       if(is_arrow) return key;
-      else if(keysdict[key] == nil) return nil;
+      else if(!keysdict[key]) return nil;
   }
 
   return key;
@@ -54,7 +53,7 @@ struct sockaddr_in sockopt;
     @"C": @"right",
     @"D": @"left",
   };
-  TtySetup *ttySetup = [[TtySetup alloc] init];
+  TtySetup *ttySetup = [TtySetup new];
 
   [ttySetup resetStdinFlags: NO];
   usleep(1000);
@@ -71,7 +70,11 @@ struct sockaddr_in sockopt;
 @end
 
 @implementation PadSetup
-- (BOOL) sendKey: (const char *) padkey keyLength: (NSInteger) key_len
+{
+  NSMutableString *padobj;
+}
+
+- (BOOL) sendKey: (const char *) padkey keyLength: (int) key_len
 {
   if((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
   {
@@ -83,30 +86,25 @@ struct sockaddr_in sockopt;
     fprintf(stderr, "Failed to connect.\r\n");
     return NO;
   }
-  else if((pad_input = (char *) malloc(input_len = sizeof PAD_PREFIX + key_len - 1)) == NULL)
-  {
-    fprintf(stderr, "Failed to allocate memory.\r\n");
-    close(sockfd);
-    return NO;
-  }
 
-  memcpy(pad_input, PAD_PREFIX, sizeof PAD_PREFIX - 1);
-  strcpy(pad_input + sizeof PAD_PREFIX - 1, padkey);
+  padobj = [NSMutableString new];
+  [padobj appendString: PAD_PREFIX];
+  [padobj appendFormat: @"%s", padkey];
 
   return YES;
 }
 
 - (BOOL) padConnect
 {
-  NSString *key = [[NSString string] init];
-  NSMutableString *getchar = [[NSMutableString string] init];
+  NSString *key = [NSString new];
+  NSMutableString *input = [NSMutableString new];
+  const char *pad_input;
 
-  if([getchar getArrowKey: NO] == nil) return YES;
+  if(![input getArrowKey: NO]) return YES;
   else if(![self sendKey: [key UTF8String] keyLength: [key length]]) return NO;
 
-  printf("%s\r\n", pad_input);
+  printf("%s\r\n", pad_input = [padobj UTF8String]);
   write(sockfd, pad_input, input_len);
-  free(pad_input);
   close(sockfd);
 
   return YES;
@@ -155,9 +153,9 @@ struct sockaddr_in sockopt;
 int main(int argc, char **argv)
 {
   struct hostent *resaddr;
-  NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-  PadSetup *padSetup = [[PadSetup alloc] init];
-  TtySetup *ttySetup = [[TtySetup alloc] init];
+  NSAutoreleasePool *pool = [NSAutoreleasePool new];
+  PadSetup *padSetup = [PadSetup new];
+  TtySetup *ttySetup = [TtySetup new];
 
   if(argc < 2 || argc > 2)
   {
