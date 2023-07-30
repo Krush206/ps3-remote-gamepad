@@ -3,17 +3,15 @@
 #import <termios.h>
 #import <arpa/inet.h>
 #import <netdb.h>
-#import "pad.h"
+#import <fcntl.h>
+#import "Pad.h"
 
 #define PAD_PREFIX @"GET /pad.ps3?"
 
-int sockfd, fdflags, input_len;
-struct sockaddr_in sockopt;
-
 @implementation NSString (getchar)
-- (NSMutableString *) getArrowKey: (BOOL) is_arrow
+- (NSString *) getKey: (BOOL) isArrow
 {
-  char c;
+  unichar c;
   NSMutableString *key = [NSMutableString new];
   NSDictionary *keysdict = @{
     @"h": @"_psbtn_home",
@@ -37,16 +35,16 @@ struct sockaddr_in sockopt;
     case 27: return [self parseArrowKey];
     default:
       [key appendFormat: @"%c", c];
-      if(is_arrow) return key;
-      else if(!keysdict[key]) return nil;
+      if(isArrow) return key;
+      else return [keysdict objectForKey: key];
   }
 
-  return key;
+  return nil;
 }
 
-- (NSMutableString *) parseArrowKey
+- (NSString *) parseArrowKey
 {
-  NSMutableString *key;
+  NSString *key;
   NSDictionary *keysdict = @{
     @"A": @"up",
     @"B": @"down",
@@ -55,14 +53,14 @@ struct sockaddr_in sockopt;
   };
   TtySetup *ttySetup = [TtySetup new];
 
-  [ttySetup resetStdinFlags: NO];
+  [ttySetup setStdinFlags: NO];
   usleep(1000);
-  if([[self getArrowKey: YES] isEqualToString: @"["])
+  if([[self getKey: YES] isEqualToString: @"["])
   {
     usleep(1000);
-    key = [self getArrowKey: YES];
-    [ttySetup resetStdinFlags: YES];
-    return keysdict[key];
+    key = [self getKey: YES];
+    [ttySetup setStdinFlags: YES];
+    return [keysdict objectForKey: key];
   }
       
   return nil;
@@ -70,11 +68,7 @@ struct sockaddr_in sockopt;
 @end
 
 @implementation PadSetup
-{
-  NSMutableString *padobj;
-}
-
-- (BOOL) sendKey: (const char *) padkey keyLength: (int) key_len
+- (BOOL) connectKey: (NSString *) padkey
 {
   if((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
   {
@@ -87,24 +81,21 @@ struct sockaddr_in sockopt;
     return NO;
   }
 
-  padobj = [NSMutableString new];
-  [padobj appendString: PAD_PREFIX];
-  [padobj appendFormat: @"%s", padkey];
+  padobj = [[NSString alloc] initWithFormat: @"%@%@", padkey, PAD_PREFIX];
 
   return YES;
 }
 
 - (BOOL) padConnect
 {
-  NSString *key = [NSString new];
-  NSMutableString *input = [NSMutableString new];
+  NSString *input = [NSString new];
   const char *pad_input;
 
-  if(![input getArrowKey: NO]) return YES;
-  else if(![self sendKey: [key UTF8String] keyLength: [key length]]) return NO;
+  if(!(input = [input getKey: NO])) return YES;
+  else if(![self connectKey: input]) return NO;
 
   printf("%s\r\n", pad_input = [padobj UTF8String]);
-  write(sockfd, pad_input, input_len);
+  write(sockfd, pad_input, [padobj length]);
   close(sockfd);
 
   return YES;
@@ -115,10 +106,17 @@ struct sockaddr_in sockopt;
   printf("Exiting...\r\n");
   exit(0);
 }
+
+- (void) setAddress: (const char *) addr
+{
+  sockopt.sin_family = AF_INET;
+  sockopt.sin_port = htons(80);
+  inet_aton(addr, &sockopt.sin_addr);
+}
 @end
 
 @implementation TtySetup
-- (BOOL) resetStdinFlags: (BOOL) reset
+- (BOOL) setStdinFlags: (BOOL) reset
 {
   if(reset)
   {
@@ -128,12 +126,11 @@ struct sockaddr_in sockopt;
       return NO;
     }
   }
-  else
-    if(fcntl(0, F_SETFL, fdflags | O_NONBLOCK) < 0)
-    {
-      fprintf(stderr, "Failed to set stdin descriptor flags.\r\n");
-      return NO;
-    }
+  else if(fcntl(0, F_SETFL, fdflags | O_NONBLOCK) < 0)
+  {
+    fprintf(stderr, "Failed to set stdin descriptor flags.\r\n");
+    return NO;
+  }
 
   return YES;
 }
@@ -145,6 +142,14 @@ struct sockaddr_in sockopt;
   if(tcgetattr(0, &term) < 0) return NO;
   cfmakeraw(&term);
   if(tcsetattr(0, TCSANOW, &term) < 0) return NO;
+
+  return YES;
+}
+
+- (BOOL) getStdinFlags
+{
+  if((fdflags = fcntl(0, F_GETFL)) < 0)
+    return NO;
 
   return YES;
 }
@@ -162,28 +167,25 @@ int main(int argc, char **argv)
     fprintf(stderr, "Usage: ./a.out <PlayStation 3 ip>\n");
     return -1;
   }
-  else if((resaddr = gethostbyname(argv[1])) == NULL)
+  else if(!(resaddr = gethostbyname(argv[1])))
   {
     fprintf(stderr, "Invalid address.\n");
     return -1;
   }
   
-  sockopt.sin_family = AF_INET;
-  sockopt.sin_port = htons(80);
-  inet_aton(argv[1], &sockopt.sin_addr);
-
   if(![ttySetup makeRawTerm])
   {
     fprintf(stderr, "Failed to set up the terminal.\n");
     return -1;
   }
-  else if((fdflags = fcntl(0, F_GETFL)) < 0)
+  else if(![ttySetup getStdinFlags])
   {
     fprintf(stderr, "Failed to get stdin descriptor flags.\r\n");
     return -1;
   }
 
-  while(1)
+  [padSetup setAddress: resaddr->h_addr];
+  while(YES)
     if(![padSetup padConnect]) return -1;
 
   [pool drain];
