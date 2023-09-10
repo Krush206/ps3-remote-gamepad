@@ -11,8 +11,8 @@
 @implementation NSString (getchar)
 - (NSString *) getKey: (BOOL) isArrow
 {
-  unichar c;
-  NSMutableString *key = [NSMutableString new];
+  int c;
+  NSString *key;
   NSDictionary *keysdict = @{
     @"h": @"_psbtn_home",
     @"H": @"_psbtn_home_hold",
@@ -34,9 +34,9 @@
     case 3: [exit padExit];
     case 27: return [self parseArrowKey];
     default:
-      [key appendFormat: @"%c", c];
+      key = [[NSString alloc] initWithFormat: @"%c", c];
       if(isArrow) return key;
-      else return [keysdict objectForKey: key];
+      return [keysdict objectForKey: key];
   }
 
   return nil;
@@ -81,7 +81,7 @@
     return NO;
   }
 
-  padobj = [[NSString alloc] initWithFormat: @"%@%@", padkey, PAD_PREFIX];
+  padobj = [[NSString alloc] initWithFormat: @"%@%@", PAD_PREFIX, padkey];
 
   return YES;
 }
@@ -111,7 +111,7 @@
 {
   sockopt.sin_family = AF_INET;
   sockopt.sin_port = htons(80);
-  inet_aton(addr, &sockopt.sin_addr);
+  sockopt.sin_addr.s_addr = inet_addr(inet_ntoa(*(struct in_addr *) addr));
 }
 @end
 
@@ -157,36 +157,36 @@
 
 int main(int argc, char **argv)
 {
-  struct hostent *resaddr;
-  NSAutoreleasePool *pool = [NSAutoreleasePool new];
-  PadSetup *padSetup = [PadSetup new];
-  TtySetup *ttySetup = [TtySetup new];
-
-  if(argc < 2 || argc > 2)
+  @autoreleasepool
   {
-    fprintf(stderr, "Usage: ./a.out <PlayStation 3 ip>\n");
-    return -1;
-  }
-  else if(!(resaddr = gethostbyname(argv[1])))
-  {
-    fprintf(stderr, "Invalid address.\n");
-    return -1;
-  }
+    struct hostent *resaddr;
+    PadSetup *padSetup = [PadSetup new];
+    TtySetup *ttySetup = [TtySetup new];
   
-  if(![ttySetup makeRawTerm])
-  {
-    fprintf(stderr, "Failed to set up the terminal.\n");
-    return -1;
+    if(argc < 2 || argc > 2)
+    {
+      fprintf(stderr, "Usage: ./a.out <PlayStation 3 ip>\n");
+      return -1;
+    }
+    else if(!(resaddr = gethostbyname(argv[1])))
+    {
+      fprintf(stderr, "Invalid address.\n");
+      return -1;
+    }
+    
+    if(![ttySetup makeRawTerm])
+    {
+      fprintf(stderr, "Failed to set up the terminal.\n");
+      return -1;
+    }
+    else if(![ttySetup getStdinFlags])
+    {
+      fprintf(stderr, "Failed to get stdin descriptor flags.\r\n");
+      return -1;
+    }
+  
+    [padSetup setAddress: resaddr->h_addr];
+    while(YES)
+      if(![padSetup padConnect]) return -1;
   }
-  else if(![ttySetup getStdinFlags])
-  {
-    fprintf(stderr, "Failed to get stdin descriptor flags.\r\n");
-    return -1;
-  }
-
-  [padSetup setAddress: resaddr->h_addr];
-  while(YES)
-    if(![padSetup padConnect]) return -1;
-
-  [pool drain];
 }
