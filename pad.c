@@ -30,10 +30,9 @@
 int pad_connect(void);
 int getkey(void);
 int fcntl_setup(int);
-int pad_setup(char *, int);
+int pad_setup(char *, char *);
 
-int sockfd, fdflags, input_len;
-char *pad_input;
+int sockfd, fdflags;
 struct sockaddr_in sockopt;
 
 int main(int argc, char **argv)
@@ -53,7 +52,7 @@ int main(int argc, char **argv)
   
   sockopt.sin_family = AF_INET;
   sockopt.sin_port = htons(80);
-  inet_aton(*resaddr->h_addr_list, &sockopt.sin_addr);
+  sockopt.sin_addr.s_addr = inet_addr(inet_ntoa(*(struct in_addr *) resaddr->h_addr));
 
   if(!getkey())
   {
@@ -72,44 +71,106 @@ int main(int argc, char **argv)
 
 int pad_connect(void)
 {
+  char *pad_input;
+
   switch(getchar())
   {
     case 'z':
-      if(!pad_setup(PAD_CROSS, sizeof PAD_CROSS)) return 0;
+    {
+      char pad_arr[sizeof PAD_PREFIX + sizeof PAD_CROSS - 1];
+
+      if(!pad_setup(PAD_CROSS, pad_arr)) return 0;
+      pad_input = pad_arr;
       break;
+    }
     case 'a':
-      if(!pad_setup(PAD_SQUARE, sizeof PAD_SQUARE)) return 0;
+    {
+      char pad_arr[sizeof PAD_PREFIX + sizeof PAD_SQUARE - 1];
+
+      if(!pad_setup(PAD_SQUARE, pad_arr)) return 0;
+      pad_input = pad_arr;
       break;
+    }
     case 's':
-      if(!pad_setup(PAD_CIRCLE, sizeof PAD_CIRCLE)) return 0;
+    {
+      char pad_arr[sizeof PAD_PREFIX + sizeof PAD_CIRCLE - 1];
+
+      if(!pad_setup(PAD_CIRCLE, pad_arr)) return 0;
+      pad_input = pad_arr;
       break;
+    }
     case 'w':
-      if(!pad_setup(PAD_TRIANGLE, sizeof PAD_TRIANGLE)) return 0;
+    {
+      char pad_arr[sizeof PAD_PREFIX + sizeof PAD_TRIANGLE - 1];
+
+      if(!pad_setup(PAD_TRIANGLE, pad_arr)) return 0;
+      pad_input = pad_arr;
       break;
+    }
     case 'q':
-      if(!pad_setup(PAD_L1, sizeof PAD_L1)) return 0;
+    {
+      char pad_arr[sizeof PAD_PREFIX + sizeof PAD_L1 - 1];
+
+      if(!pad_setup(PAD_L1, pad_arr)) return 0;
+      pad_input = pad_arr;
       break;
+    }
     case 'e':
-      if(!pad_setup(PAD_R1, sizeof PAD_R1)) return 0;
+    {
+      char pad_arr[sizeof PAD_PREFIX + sizeof PAD_R1 - 1];
+
+      if(!pad_setup(PAD_R1, pad_arr)) return 0;
+      pad_input = pad_arr;
       break;
+    }
     case 'x':
-      if(!pad_setup(PAD_L2, sizeof PAD_L2)) return 0;
+    {
+      char pad_arr[sizeof PAD_PREFIX + sizeof PAD_L2 - 1];
+
+      if(!pad_setup(PAD_L2, pad_arr)) return 0;
+      pad_input = pad_arr;
       break;
+    }
     case 'c':
-      if(!pad_setup(PAD_R2, sizeof PAD_R2)) return 0;
+    {
+      char pad_arr[sizeof PAD_PREFIX + sizeof PAD_R2 - 1];
+
+      if(!pad_setup(PAD_R2, pad_arr)) return 0;
+      pad_input = pad_arr;
       break;
+    }
     case '1':
-      if(!pad_setup(PAD_START, sizeof PAD_START)) return 0;
+    {
+      char pad_arr[sizeof PAD_PREFIX + sizeof PAD_START - 1];
+
+      if(!pad_setup(PAD_START, pad_arr)) return 0;
+      pad_input = pad_arr;
       break;
+    }
     case '2':
-      if(!pad_setup(PAD_SELECT, sizeof PAD_SELECT)) return 0;
+    {
+      char pad_arr[sizeof PAD_PREFIX + sizeof PAD_SELECT - 1];
+
+      if(!pad_setup(PAD_SELECT, pad_arr)) return 0;
+      pad_input = pad_arr;
       break;
+    }
     case 'h':
-      if(!pad_setup(PAD_HOME, sizeof PAD_HOME)) return 0;
+    {
+      char pad_arr[sizeof PAD_PREFIX + sizeof PAD_HOME - 1];
+
+      if(!pad_setup(PAD_HOME, pad_arr)) return 0;
+      pad_input = pad_arr;
       break;
+    }
     case 'H':
-      if(!pad_setup(PAD_HOME_HOLD, sizeof PAD_HOME_HOLD)) return 0;
+    {
+      char pad_arr[sizeof PAD_PREFIX + sizeof PAD_HOME_HOLD - 1];
+
+      if(!pad_setup(PAD_HOME_HOLD, pad_arr)) return 0;
+      pad_input = pad_arr;
       break;
+    }
     case 27: /* For arrow keys. */
       if(!fcntl_setup(0)) return 0;
       usleep(1000);
@@ -119,21 +180,41 @@ int pad_connect(void)
         switch(getchar())
         {
           case 'A':
+          {
+            char pad_arr[sizeof PAD_PREFIX + sizeof PAD_UP - 1];
+
             if(!fcntl_setup(1)) return 0;
-            else if(!pad_setup(PAD_UP, sizeof PAD_UP)) return 0;
+            else if(!pad_setup(PAD_UP, pad_arr)) return 0;
+            pad_input = pad_arr;
             break;
+          }
           case 'B':
+          {
+            char pad_arr[sizeof PAD_PREFIX + sizeof PAD_DOWN - 1];
+
             if(!fcntl_setup(1)) return 0;
-            else if(!pad_setup(PAD_DOWN, sizeof PAD_DOWN)) return 0;
+            else if(!pad_setup(PAD_DOWN, pad_arr)) return 0;
+            pad_input = pad_arr;
             break;
+          }
           case 'C':
+          {
+            char pad_arr[sizeof PAD_PREFIX + sizeof PAD_RIGHT - 1];
+
             if(!fcntl_setup(1)) return 0;
-            else if(!pad_setup(PAD_RIGHT, sizeof PAD_RIGHT)) return 0;
+            else if(!pad_setup(PAD_RIGHT, pad_arr)) return 0;
+            pad_input = pad_arr;
             break;
+          }
           case 'D':
+          {
+            char pad_arr[sizeof PAD_PREFIX + sizeof PAD_LEFT - 1];
+
             if(!fcntl_setup(1)) return 0;
-            else if(!pad_setup(PAD_LEFT, sizeof PAD_LEFT)) return 0;
+            else if(!pad_setup(PAD_LEFT, pad_arr)) return 0;
+            pad_input = pad_arr;
             break;
+          }
           default:
             if(!fcntl_setup(1)) return 0;
 	    return 1;
@@ -153,8 +234,7 @@ int pad_connect(void)
   }
 
   printf("%s\r\n", pad_input);
-  write(sockfd, pad_input, input_len);
-  free(pad_input);
+  write(sockfd, pad_input, strlen(pad_input));
   close(sockfd);
 
   return 1;
@@ -191,7 +271,7 @@ int fcntl_setup(int reset)
   return 1;
 }
 
-int pad_setup(char *padkey, int key_len)
+int pad_setup(char *padkey, char *pad_input)
 {
   if((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
   {
@@ -201,12 +281,6 @@ int pad_setup(char *padkey, int key_len)
   else if(connect(sockfd, (struct sockaddr *) &sockopt, sizeof sockopt) < 0)
   {
     fprintf(stderr, "Failed to connect.\r\n");
-    return 0;
-  }
-  else if((pad_input = (char *) malloc(input_len = sizeof PAD_PREFIX + key_len - 1)) == NULL)
-  {
-    fprintf(stderr, "Failed to allocate memory.\r\n");
-    close(sockfd);
     return 0;
   }
 
